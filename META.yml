@@ -1,0 +1,26 @@
+---
+name: Module-Build-Functions
+version: 0.001_009
+author:
+  - 'Curtis Jewell <csjewell@cpan.org>'
+abstract: Module::Install style syntax for Module::Build
+license: perl
+resources:
+  license: http://dev.perl.org/licenses/
+configure_requires:
+  Module::Build: 0.31
+requires:
+  File::Slurp: 0
+  perl: 5.005
+build_requires:
+  Module::Build: 0.31
+  Test::Compile: 0
+  Test::More: 0
+provides:
+  Module::Build::Functions:
+    file: lib/Module/Build/Functions.pm
+    version: 0.001_009
+generated_by: Module::Build version 0.33
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4

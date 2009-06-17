@@ -1,0 +1,56 @@
+Module-Build-Functions version 0.001_007
+
+DESCRIPTION
+    This module gives a Module::Install-like syntax to Module::Build, using
+    modules (other than Module::Build itself) that are in the core in 5.006.
+
+    Most commands from Module::Install will be supported, and most
+    parameters to Module::Build's `new' routine are supported as commands.
+    This includes the share directory implementation that
+    Module::Install::Share and File::ShareDir implements.
+
+    This means that using this module instead of Module::Install can be as
+    easy as replacing the `use inc::Module::Install' line by `use
+    inc::Module::Build::Functions', and renaming the resulting file to
+    Build.PL.
+
+    Unfortunately, Module::Install extensions are not supported, nor is the
+    Module::Install::DSL syntax.
+
+    You may wish to look at the code for documentation at this point, as not
+    all functions are documented yet. This will be corrected, I promise.
+
+INSTALLATION
+    To install this module, run the following commands:
+
+            perl Makefile.PL
+            make
+            make test
+            make install
+
+    This method of installation will install a current version of
+    Module::Build if it is not already installed.
+
+    Alternatively, to install with Module::Build, you can use the following
+    commands:
+
+            perl Build.PL
+            ./Build
+            ./Build test
+            ./Build install
+
+DEPENDENCIES
+    File::Slurp and Module::Build are required on the system of an author
+    using this module in his Build.PL.
+
+    On the system of the person installing a module using
+    Module::Build::Functions, only Module::Build is required. The version of
+    Module::Build that will be required is determined by the functions used.
+
+LICENCE AND COPYRIGHT
+    Copyright (c) 2009, Curtis Jewell `<csjewell@cpan.org>'. All rights
+    reserved.
+
+    This module is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself. See perlartistic.
+

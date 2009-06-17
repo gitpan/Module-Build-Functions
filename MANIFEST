@@ -1,0 +1,20 @@
+Build.PL
+Changes
+inc/Module/Build/Functions.pm
+lib/Module/Build/Functions.pm
+lib/Module/Build/Functions.pod
+MANIFEST			This list of files
+t/00_load.t
+t/80_perlcritic.t
+t/81_pod.t
+t/82_pod-coverage.t
+t/83_version.t
+t/84_minimumversion.t
+t/85_meta.t
+t/86_manifest.t
+t/settings/perlcritic.txt
+t/settings/perltidy.txt
+Makefile.PL
+README
+LICENSE
+META.yml

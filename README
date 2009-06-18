@@ -1,4 +1,4 @@
-Module-Build-Functions version 0.001_007
+Module-Build-Functions version 0.001_010
 
 DESCRIPTION
     This module gives a Module::Install-like syntax to Module::Build, using
@@ -35,13 +35,18 @@ INSTALLATION
     commands:
 
             perl Build.PL
-            ./Build
-            ./Build test
-            ./Build install
+            Build
+            Build test
+            Build install
+
+    (Use ./Build instead of Build if the current directory is not in your
+    path.)
 
 DEPENDENCIES
     File::Slurp and Module::Build are required on the system of an author
     using this module in his Build.PL.
+
+    Capture::Tiny version 0.06 or greater is used during testing only.
 
     On the system of the person installing a module using
     Module::Build::Functions, only Module::Build is required. The version of

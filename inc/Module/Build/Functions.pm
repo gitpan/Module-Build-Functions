@@ -3,11 +3,10 @@ package inc::Module::Build::Functions;
 #<<<
 use     strict;
 use     5.005;
-use     vars                  
-  qw( $VERSION @EXPORT $AUTOLOAD %args @install_types );
-use     Carp                  qw( croak carp                       );
-use     Exporter              qw( import                           );
-use     File::Spec::Functions qw( catdir catfile                   );
+use     vars                  qw( $VERSION @EXPORT $AUTOLOAD %ARGS);
+use     Carp                  qw( croak carp confess              );
+use     Exporter              qw( import                          );
+use     File::Spec::Functions qw( catdir catfile                  );
 use     Config;
 
 
@@ -20,36 +19,38 @@ my    $autoload       = 1;
 my    $object_created = 0;
 my    $sharemod_used  = 1;
 my    (%FLAGS, %ALIASES, %ARRAY, %HASH, @AUTOLOADED, @DEFINED);
+my    @install_types;
 #>>>
 
 BEGIN {
-	$VERSION = '0.001_009';
+	$VERSION = '0.001_010';
 
 	require Module::Build;
+
 	# Module implementation here
 
 	# Set defaults.
 	if ( $Module::Build::VERSION >= 0.28 ) {
-		$args{create_packlist} = 1;
-		$mb_required = 0.28;
+		$ARGS{create_packlist} = 1;
+		$mb_required = '0.28';
 	}
 
 	%FLAGS = (
-		'build_class'          => [ 0.28, 0 ],
-		'create_makefile_pl'   => [ 0.19, 0 ],
-		'dist_abstract'        => [ 0.20, 0 ],
-		'dist_name'            => [ 0.11, 0 ],
-		'dist_version'         => [ 0.11, 0 ],
-		'dist_version_from'    => [ 0.11, 0 ],
-		'installdirs'          => [ 0.19, 0 ],
-		'license'              => [ 0.11, 0 ],
-		'create_packlist'      => [ 0.28, 1 ],
-		'create_readme'        => [ 0.22, 1 ],
-		'create_license'       => [ 0.31, 1 ],
-		'dynamic_config'       => [ 0.07, 1 ],
-		'use_tap_harness'      => [ 0.30, 1 ],
-		'sign'                 => [ 0.16, 1 ],
-		'recursive_test_files' => [ 0.28, 1 ],
+		'build_class'          => [ '0.28', 0 ],
+		'create_makefile_pl'   => [ '0.19', 0 ],
+		'dist_abstract'        => [ '0.20', 0 ],
+		'dist_name'            => [ '0.11', 0 ],
+		'dist_version'         => [ '0.11', 0 ],
+		'dist_version_from'    => [ '0.11', 0 ],
+		'installdirs'          => [ '0.19', 0 ],
+		'license'              => [ '0.11', 0 ],
+		'create_packlist'      => [ '0.28', 1 ],
+		'create_readme'        => [ '0.22', 1 ],
+		'create_license'       => [ '0.31', 1 ],
+		'dynamic_config'       => [ '0.07', 1 ],
+		'use_tap_harness'      => [ '0.30', 1 ],
+		'sign'                 => [ '0.16', 1 ],
+		'recursive_test_files' => [ '0.28', 1 ],
 	);
 
 	%ALIASES = (
@@ -73,25 +74,24 @@ BEGIN {
 	);
 
 	%ARRAY = (
-		'autosplit'      => 0.04,
-		'add_to_cleanup' => 0.19,
-		'include_dirs'   => 0.24,
-		'dist_author'    => 0.20,
+		'autosplit'      => '0.04',
+		'add_to_cleanup' => '0.19',
+		'include_dirs'   => '0.24',
+		'dist_author'    => '0.20',
 	);
 
 	%HASH = (
-		'configure_requires' => [ 0.30, 1 ],
-		'build_requires'     => [ 0.07, 1 ],
-		'conflicts'          => [ 0.07, 1 ],
-		'recommends'         => [ 0.08, 1 ],
-		'requires'           => [ 0.07, 1 ],
-		'get_options'        => [ 0.26, 0 ],
-		'meta_add'           => [ 0.28, 0 ],
-		'meta_merge'         => [ 0.28, 0 ],
-		'pm_files'           => [ 0.19, 0 ],
-		'pod_files'          => [ 0.19, 0 ],
-		'xs_files'           => [ 0.19, 0 ],
-		'install_path'       => [ 0.19, 0 ],
+		'configure_requires' => [ '0.30', 1 ],
+		'build_requires'     => [ '0.07', 1 ],
+		'conflicts'          => [ '0.07', 1 ],
+		'recommends'         => [ '0.08', 1 ],
+		'requires'           => [ '0.07', 1 ],
+		'get_options'        => [ '0.26', 0 ],
+		'meta_add'           => [ '0.28', 0 ],
+		'pm_files'           => [ '0.19', 0 ],
+		'pod_files'          => [ '0.19', 0 ],
+		'xs_files'           => [ '0.19', 0 ],
+		'install_path'       => [ '0.19', 0 ],
 	);
 
 	@AUTOLOADED = ( keys %HASH, keys %ARRAY, keys %ALIASES, keys %FLAGS );
@@ -105,16 +105,17 @@ BEGIN {
 	  author_context install_share auto_features extra_compiler_flags
 	  extra_linker_flags module_name no_index PL_files script_files test_files
 	  tap_harness_args subclass create_build_script get_builder
-	  functions_self_bundler bundler
+	  functions_self_bundler bundler repository bugtracker meta_merge
 	);
 	@EXPORT = ( @DEFINED, @AUTOLOADED );
+
 	# print join ' ', 'Exported:', @EXPORT, "\n";
-}
+} ## end BEGIN
 
 # The autoload handles 4 types of "similar" routines, for 45 names.
 sub AUTOLOAD {
 	my $full_sub = $AUTOLOAD;
-	my ($sub) = $AUTOLOAD =~ m{\A.*::([^:]*)\z};
+	my ($sub) = $AUTOLOAD =~ m{\A.*::([^:]*)\z}x;
 
 	if ( exists $ALIASES{$sub} ) {
 		my $alias = $ALIASES{$sub};
@@ -124,27 +125,29 @@ sub $full_sub {
 	return;
 }
 END_OF_CODE
-		goto &$full_sub;
+		goto &{$full_sub};
 	}
 
 	if ( exists $FLAGS{$sub} ) {
-		my $version  = $FLAGS{$sub}[0];
-		my $boolean1 = $FLAGS{$sub}[1] ? '|| 1' : q{};
-		my $boolean2 = $FLAGS{$sub}[1] ? q{!!} : q{};
+		my $boolean_version  = $FLAGS{$sub}[0];
+		my $boolean_default = $FLAGS{$sub}[1] ? ' || 1' : q{};
+		my $boolean_normal = $FLAGS{$sub}[1] ? q{!!} : q{};
 		eval <<"END_OF_CODE";
 sub $full_sub {	
-	my \$argument = shift $boolean1;
-	\$args{$sub} = $boolean2 \$argument;
-	_mb_required($version);
+	my \$argument = shift$boolean_default;
+	\$ARGS{$sub} = $boolean_normal \$argument;
+	_mb_required('$boolean_version');
 	return;
 }
 END_OF_CODE
-		goto &$full_sub;
+		goto &{$full_sub};
 	} ## end if ( exists $FLAGS{$sub...
 
 	if ( exists $ARRAY{$sub} ) {
+
 #		_create_arrayref($sub);
-		my $code = <<"END_OF_CODE";
+		my $array_version = $ARRAY{$sub};
+		my $code_array = <<"END_OF_CODE";
 sub $full_sub {
 	my \$argument = shift;
 	if ( 'ARRAY' eq ref \$argument ) {
@@ -155,31 +158,27 @@ sub $full_sub {
 	}
 	
 	my \@array;
-	if (exists \$args{$sub}) {
-		\$args{$sub} = [ \@{ \$args{$sub} }, \$argument ];
+	if (exists \$ARGS{$sub}) {
+		\$ARGS{$sub} = [ \@{ \$ARGS{$sub} }, \$argument ];
 	} else {
-		\$args{$sub} = [ \$argument ];
+		\$ARGS{$sub} = [ \$argument ];
 	}
-	_mb_required(\$ARRAY{$sub});
+	_mb_required('$array_version');
 	return;
 }
 END_OF_CODE
-		eval $code;
-#		if ($EVAL_ERROR) {
-#			print "$@\n";
-#			exit;
-#		} 
-		goto &$full_sub;
+		eval $code_array;
+		goto &{$full_sub};
 	} ## end if ( exists $ARRAY{$sub...
 
 	if ( exists $HASH{$sub} ) {
 		_create_hashref($sub);
-		my $version = $HASH{$sub}[0];
-		my $default = $HASH{$sub}[1] ? '|| 0' : q{};
-		eval <<"END_OF_CODE";
+		my $hash_version = $HASH{$sub}[0];
+		my $hash_default = $HASH{$sub}[1] ? ' || 0' : q{};
+		my $code_hash = <<"END_OF_CODE";
 sub $full_sub {
 	my \$argument1 = shift;
-	my \$argument2 = shift $default;
+	my \$argument2 = shift$hash_default;
 	if ( 'HASH' eq ref \$argument1 ) {
 		my ( \$k, \$v );
 		while ( ( \$k, \$v ) = each \%{\$argument1} ) {
@@ -188,12 +187,13 @@ sub $full_sub {
 		return;
 	}
 
-	\$args{$sub}{\$argument1} = \$argument2;
-	_mb_required($version);
+	\$ARGS{$sub}{\$argument1} = \$argument2;
+	_mb_required('$hash_version');
 	return;
 }
 END_OF_CODE
-		goto &$full_sub;
+		eval $code_hash;
+		goto &{$full_sub};
 	} ## end if ( exists $HASH{$sub...
 
 	if ( $autoload == 1 ) {
@@ -213,17 +213,17 @@ sub _mb_required {
 }
 
 sub _installdir {
-	return $Config{'sitelibexp'}   unless ( defined     $args{install_type} );
-	return $Config{'sitelibexp'}   if     ( 'site'   eq $args{install_type} );
-	return $Config{'privlibexp'}   if     ( 'perl'   eq $args{install_type} );
-	return $Config{'vendorlibexp'} if     ( 'vendor' eq $args{install_type} );
+	return $Config{'sitelibexp'} unless ( defined $ARGS{install_type} );
+	return $Config{'sitelibexp'}   if ( 'site'   eq $ARGS{install_type} );
+	return $Config{'privlibexp'}   if ( 'perl'   eq $ARGS{install_type} );
+	return $Config{'vendorlibexp'} if ( 'vendor' eq $ARGS{install_type} );
 	croak 'Invalid install type';
 }
 
 sub _create_hashref {
 	my $name = shift;
-	unless ( exists $args{$name} ) {
-		$args{$name} = {};
+	unless ( exists $ARGS{$name} ) {
+		$ARGS{$name} = {};
 	}
 	return;
 }
@@ -231,8 +231,8 @@ sub _create_hashref {
 sub _create_hashref_arrayref {
 	my $name1 = shift;
 	my $name2 = shift;
-	unless ( exists $args{$name1}{$name2} ) {
-		$args{$name1}{$name2} = [];
+	unless ( exists $ARGS{$name1}{$name2} ) {
+		$ARGS{$name1}{$name2} = [];
 	}
 	return;
 }
@@ -241,17 +241,17 @@ sub _slurp_file {
 	my $name = shift;
 	my $file_handle;
 
-	if ( $] < 5.006 ) { ## no critic(ProhibitPunctuationVars)
+	if ( $] < 5.006 ) {
 		require Symbol;
 		$file_handle = Symbol::gensym();
-		open $file_handle, "<$name" ## no critic(RequireBriefOpen)
+		open $file_handle, "<$name"
 		  or croak $!;
 	} else {
-		open $file_handle, '<', $name ## no critic(RequireBriefOpen)
+		open $file_handle, '<', $name
 		  or croak $!;
 	}
 
-	local $/ = undef;   # enable localized slurp mode
+	local $/ = undef;                  # enable localized slurp mode
 	my $content = <$file_handle>;
 
 	close $file_handle;
@@ -276,7 +276,7 @@ sub abstract_from {
 
 	require ExtUtils::MM_Unix;
 	abstract(
-		bless( { DISTNAME => $args{module_name} }, 'ExtUtils::MM_Unix' )
+		bless( { DISTNAME => $ARGS{module_name} }, 'ExtUtils::MM_Unix' )
 		  ->parse_abstract($file) );
 
 	return;
@@ -287,51 +287,61 @@ sub author_from {
 	my $file    = shift;
 	my $content = _slurp_file($file);
 	my $author;
-		
+
 	if ($content =~ m{
 		=head \d \s+ (?:authors?)\b \s*
 		(.*?)
 		=head \d
-	}ixms) {
+	}ixms
+	  )
+	{
+
 		# Grab all author lines.
 		my $authors = $1;
-		
+
 		# Now break up each line.
-		while ($authors =~ m{\G([^\n]+) \s*}gcixms) {
+		while ( $authors =~ m{\G([^\n]+) \s*}gcixms ) {
 			$author = $1;
+
 			# Convert E<lt> and E<gt> into the right characters.
 			$author =~ s{E<lt>}{<}g;
 			$author =~ s{E<gt>}{>}g;
-			
-			# Remove new-style C<< >> markers. 
-			if ($author =~ m{\A(.*?) \s* C<< \s* (.*?) \s* >>}msx) {
+
+			# Remove new-style C<< >> markers.
+			if ( $author =~ m{\A(.*?) \s* C<< \s* (.*?) \s* >>}msx ) {
 				$author = "$1 $2";
 			}
 			dist_author($author);
-		}		
-	} elsif ($content =~ m{
+		} ## end while ( $authors =~ m{\G([^\n]+) \s*}gcixms)
+	} elsif (
+		$content =~ m{
 		=head \d \s+ (?:licen[cs]e|licensing|copyright|legal)\b \s*
 		.*? copyright .*? \d\d\d[\d.]+ \s* (?:\bby\b)? \s*
 		([^\n]*)
-	}ixms) {
+	}ixms
+	  )
+	{
 		$author = $1;
+
 		# Convert E<lt> and E<gt> into the right characters.
 		$author =~ s{E<lt>}{<}g;
 		$author =~ s{E<gt>}{>}g;
-		
-		# Remove new-style C<< >> markers. 
-		if ($author =~ m{\A(.*?) \s* C<< \s* (.*?) \s* >>}msx) {
+
+		# Remove new-style C<< >> markers.
+		if ( $author =~ m{\A(.*?) \s* C<< \s* (.*?) \s* >>}msx ) {
 			$author = "$1 $2";
 		}
 		dist_author($author);
 	} else {
 		carp "Cannot determine author info from $file";
 	}
-}
+
+	return;
+} ## end sub author_from
 
 # Borrowed from Module::Install::Metadata->license_from
 sub license_from {
-	my $file = shift;
+	my $file    = shift;
 	my $content = _slurp_file($file);
 	if ($content =~ m{
 		(
@@ -341,8 +351,11 @@ sub license_from {
 		)
 		(=head\\d.*|=cut.*|)
 		\z
-	}ixms ) {
+	}ixms
+	  )
+	{
 		my $license_text = $1;
+#<<<
 		my @phrases      = (
 			'under the same (?:terms|license) as perl itself' => 'perl',        1,
 			'GNU general public license'                      => 'gpl',         1,
@@ -358,21 +371,22 @@ sub license_from {
 			'BSD'                                             => 'bsd',         1,
 			'Artistic'                                        => 'artistic',    1,
 			'MIT'                                             => 'mit',         1,
-			'proprietary'                                     => 'proprietary', 0,
+			'proprietary'                                     => 'restrictive', 0,
 		);
-		while ( my ($pattern, $license, $osi) = splice(@phrases, 0, 3) ) {
+#>>>
+		while ( my ( $pattern, $license, $osi ) = splice @phrases, 0, 3 ) {
 			$pattern =~ s{\s+}{\\s+}g;
-			if ( $license_text =~ /\b$pattern\b/i ) {
+			if ( $license_text =~ /\b$pattern\b/ix ) {
 				license($license);
 				return;
 			}
 		}
-	}
+	} ## end if ( $content =~ m{ )
 
 	carp "Cannot determine license info from $file";
 	license('unknown');
 	return;
-}
+} ## end sub license_from
 
 sub perl_version {
 	requires( 'perl', @_ );
@@ -381,17 +395,17 @@ sub perl_version {
 
 # Borrowed from Module::Install::Metadata->license_from
 sub perl_version_from {
-	my $file = shift;
+	my $file    = shift;
 	my $content = _slurp_file($file);
-	if (
-		$content =~ m{
+	if ($content =~ m{
 		^  # Start of LINE, not start of STRING.
 		(?:use|require) \s*
 		v?
 		([\d_\.]+)
 		\s* ;
 		}ixms
-	) {
+	  )
+	{
 		my $perl_version = $1;
 		$perl_version =~ s{_}{}g;
 		perl_version($perl_version);
@@ -400,11 +414,11 @@ sub perl_version_from {
 	}
 
 	return;
-}
+} ## end sub perl_version_from
 
 sub install_script {
 	my @scripts = @_;
-    foreach my $script ( @scripts ) {
+	foreach my $script (@scripts) {
 		if ( -f $script ) {
 			script_files($_);
 		} elsif ( -d 'script' and -f "script/$script" ) {
@@ -413,7 +427,9 @@ sub install_script {
 			croak "Cannot find script '$script'";
 		}
 	}
-}
+
+	return;
+} ## end sub install_script
 
 sub install_as_core {
 	return installdirs('perl');
@@ -463,85 +479,94 @@ sub auto_bundle_deps {
 # Module::Install::Can
 
 sub can_use {
-	my ($mod, $ver) = @_;
-	
+	my ( $mod, $ver ) = @_;
+
 	my $file = $mod;
 	$file =~ s{::|\\}{/}g;
 	$file .= '.pm' unless $file =~ /\.pm$/i;
 
-	local $@;
-	return eval { require $file; $mod->VERSION($ver || 0); 1 };
+	local $@ = undef;
+	return eval { require $file; $mod->VERSION( $ver || 0 ); 1 };
 }
 
 sub can_run {
 	my $cmd = shift;
 	require ExtUtils::MakeMaker;
-	if ($^O == 'cygwin') {
-		# MM->maybe_command is fixed in 6.51_01 for Cygwin.
-		ExtUtils::MakeMaker->import(6.51);
-	}
-	
-	my $_cmd = $cmd;
-	return $_cmd if (-x $_cmd or $_cmd = MM->maybe_command($_cmd));
+	if ( $^O eq 'cygwin' ) {
 
-	for my $dir ((split /$Config::Config{path_sep}/, $ENV{PATH}), '.') {
-		next if $dir eq '';
-		my $abs = File::Spec->catfile($dir, $cmd);
-		return $abs if (-x $abs or $abs = MM->maybe_command($abs));
+		# MM->maybe_command is fixed in 6.51_01 for Cygwin.
+		ExtUtils::MakeMaker->import(6.52);
+	}
+
+	my $_cmd = $cmd;
+	return $_cmd if ( -x $_cmd or $_cmd = MM->maybe_command($_cmd) );
+
+	for my $dir ( ( split /$Config::Config{path_sep}/x, $ENV{PATH} ), q{.} )
+	{
+		next if $dir eq q{};
+		my $abs = File::Spec->catfile( $dir, $cmd );
+		return $abs if ( -x $abs or $abs = MM->maybe_command($abs) );
 	}
 
 	return;
-}
+} ## end sub can_run
 
 sub can_cc {
-	return eval { require ExtUtils::CBuilder; ExtUtils::CBuilder->new()->have_compiler(); };
+	return eval {
+		require ExtUtils::CBuilder;
+		ExtUtils::CBuilder->new()->have_compiler();
+	};
 }
 
 # Module::Install::External
 
 sub requires_external_bin {
-	my ($bin, $version) = @_;
-	if ( $version ) {
-		croak "requires_external_bin does not support versions yet";
+	my ( $bin, $version ) = @_;
+	if ($version) {
+		croak 'requires_external_bin does not support versions yet';
 	}
 
 	# Locate the bin
 	print "Locating required external dependency bin: $bin...";
-	my $found_bin = can_run( $bin );
-	if ( $found_bin ) {
+	my $found_bin = can_run($bin);
+	if ($found_bin) {
 		print " found at $found_bin.\n";
 	} else {
 		print " missing.\n";
 		print "Unresolvable missing external dependency.\n";
 		print "Please install '$bin' seperately and try again.\n";
-		print { *STDERR } "NA: Unable to build distribution on this platform.\n";
-		exit(0);
+		print {*STDERR}
+		  "NA: Unable to build distribution on this platform.\n";
+		exit 0;
 	}
 
 	return 1;
-}
+} ## end sub requires_external_bin
 
 sub requires_external_cc {
 	unless ( can_cc() ) {
 		print "Unresolvable missing external dependency.\n";
 		print "This package requires a C compiler.\n";
-		print { *STDERR } "NA: Unable to build distribution on this platform.\n";
-		exit(0);
+		print {*STDERR}
+		  "NA: Unable to build distribution on this platform.\n";
+		exit 0;
 	}
-	
+
 	return 1;
 }
 
 # Module::Install::Fetch
 
 sub get_file {
-	croak 'get_file is not supported - replace by code in a Module::Build subclass.';
+	croak
+'get_file is not supported - replace by code in a Module::Build subclass.';
 }
 
 # Module::Install::Win32
 
 sub check_nmake {
-	croak 'check_nmake is not supported - replace by code in a Module::Build subclass.';
+	croak
+'check_nmake is not supported - replace by code in a Module::Build subclass.';
 }
 
 # Module::Install::With
@@ -554,54 +579,59 @@ sub automated_testing {
 	return !!$ENV{AUTOMATED_TESTING};
 }
 
-# Mostly borrowed from Scalar::Util::openhandle, since I should 
+# Mostly borrowed from Scalar::Util::openhandle, since I should
 # not use modules that were non-core in 5.005.
 sub _openhandle {
-  my $fh = shift;
-  my $rt = reftype($fh) || '';
+	my $fh = shift;
+	my $rt = reftype($fh) || q{};
 
-  return defined(fileno($fh)) ? $fh : undef
-    if $rt eq 'IO';
+	return ( ( defined fileno $fh ) ? $fh : undef )
+	  if $rt eq 'IO';
 
-  if ($rt ne 'GLOB') {
-    return undef;
-  }
+	if ( $rt ne 'GLOB' ) {
+		return;
+	}
 
-  (tied(*$fh) or defined(fileno($fh)))
-    ? $fh : undef;
-}
+	return ( tied *{$fh} or defined fileno $fh ) ? $fh : undef;
+} ## end sub _openhandle
 
-# Mostly borrowed from IO::Interactive::is_interactive, since I should 
+# Mostly borrowed from IO::Interactive::is_interactive, since I should
 # not use modules that were non-core in 5.005.
 sub interactive {
+
 	# If we're doing automated testing, we assume that we don't have
 	# a terminal, even if we otherwise would.
 	return 0 if automated_testing();
 
-    # Not interactive if output is not to terminal...
-    return 0 if not -t *STDOUT;
+	# Not interactive if output is not to terminal...
+	return 0 if not -t *STDOUT;
 
-    # If *ARGV is opened, we're interactive if...
-    if (_openhandle(*ARGV)) {
-        # ...it's currently opened to the magic '-' file
-        return -t *STDIN if defined $ARGV && $ARGV eq '-';
+	# If *ARGV is opened, we're interactive if...
+	if ( _openhandle(*ARGV) ) {
 
-        # ...it's at end-of-file and the next file is the magic '-' file
-        return @ARGV > 0 && $ARGV[0] eq '-' && -t *STDIN if eof *ARGV;
+		# ...it's currently opened to the magic '-' file
+		return -t *STDIN if defined $ARGV && $ARGV eq q{-};
 
-        # ...it's directly attached to the terminal 
-        return -t *ARGV;
-    }
+		# ...it's at end-of-file and the next file is the magic '-' file
+		return @ARGV > 0 && $ARGV[0] eq q{-} && -t *STDIN if eof *ARGV;
 
-    # If *ARGV isn't opened, it will be interactive if *STDIN is attached 
-    # to a terminal.
-    else {
-        return -t *STDIN;
-    }
-}
+		# ...it's directly attached to the terminal
+		return -t *ARGV;
+	}
+
+	# If *ARGV isn't opened, it will be interactive if *STDIN is attached
+	# to a terminal.
+	else {
+		return -t *STDIN;
+	}
+} ## end sub interactive
 
 sub win32 {
 	return !!( $^O eq 'MSWin32' );
+}
+
+sub cygwin {
+	return !!( $^O eq 'cygwin' );
 }
 
 sub winlike {
@@ -620,46 +650,55 @@ sub author_context {
 # Module::Install::Share
 
 sub _scan_dir {
-	my ($srcdir, $destdir, $unixdir, $type, $files) = @_;
-
+	my ( $srcdir, $destdir, $unixdir, $type, $files ) = @_;
+	
 	my $type_files = $type . '_files';
-	
-	$args{$type_files} = {} unless exists $args{"$type_files"};
-	
+
+	$ARGS{$type_files} = {} unless exists $ARGS{"$type_files"};
+
 	my $dir_handle;
-	
-	if ( $] < 5.006 ) { ## no critic(ProhibitPunctuationVars)
+
+	if ( $] < 5.006 ) {
 		require Symbol;
 		$dir_handle = Symbol::gensym();
-	} 
-		
-	opendir $dir_handle, $srcdir ## no critic(RequireBriefOpen)
-	  or croak $!;
-
-  FILE:
-	foreach my $direntry (readdir $dir_handle) {
-		if (-d $direntry) {
-			next FILE if ($direntry eq '.');
-			next FILE if ($direntry eq '..');
-			_scan_dir( catdir($srcdir, $direntry), catdir($destdir, $direntry), 
-			  File::Spec::Unix->catdir($unixdir, $direntry), $type, $files);
-		} else {
-			my $sourcefile = catfile($srcdir, $direntry);
-			my $unixfile = File::Spec::Unix->catfile($unixdir, $direntry);
-			if ( exists $files->{$unixfile}) {
-				$args{$type_files}{$sourcefile} = catfile($destdir, $direntry);
-			}
-		}
 	}
 
+	opendir $dir_handle, $srcdir or croak $!;
+
+  FILE:
+	foreach my $direntry ( readdir $dir_handle ) {
+		if ( -d catdir( $srcdir, $direntry) ) {
+			next FILE if ( $direntry eq q{.} );
+			next FILE if ( $direntry eq q{..} );
+			_scan_dir(
+				catdir( $srcdir,  $direntry ),
+				catdir( $destdir, $direntry ),
+				File::Spec::Unix->catdir( $unixdir, $direntry ),
+				$type,
+				$files
+			);
+		} else {
+			my $sourcefile = catfile( $srcdir, $direntry );
+			my $unixfile = File::Spec::Unix->catfile( $unixdir, $direntry );
+			if ( exists $files->{$unixfile} ) {
+				$ARGS{$type_files}{$sourcefile} =
+				  catfile( $destdir, $direntry );
+			}
+		}
+	} ## end foreach my $direntry ( readdir...
+
 	closedir $dir_handle;
-}
+
+	return;
+} ## end sub _scan_dir
 
 sub install_share {
 	my $dir  = @_ ? pop   : 'share';
 	my $type = @_ ? shift : 'dist';
 
-	unless ( defined $type and ( ($type eq 'module') or ($type eq 'dist') ) ) {
+	unless ( defined $type
+		and ( ( $type eq 'module' ) or ( $type eq 'dist' ) ) )
+	{
 		croak "Illegal or invalid share dir type '$type'";
 	}
 	unless ( defined $dir and -d $dir ) {
@@ -671,15 +710,15 @@ sub install_share {
 	my $files = ExtUtils::Manifest::maniread();
 	my $installation_path;
 	my $sharecode;
-	
+
 	if ( $type eq 'dist' ) {
 		croak 'Too many parameters to install_share' if @_;
 
-		my $dist = $args{'dist_name'};
+		my $dist = $ARGS{'dist_name'};
 
 		$installation_path =
 		  catdir( _installdir(), qw(auto share dist), $dist );
-		_scan_dir($dir, 'share', $dir, 'share', $files); 
+		_scan_dir( $dir, 'share', $dir, 'share', $files );
 		push @install_types, 'share';
 		$sharecode = 'share';
 	} else {
@@ -693,15 +732,24 @@ sub install_share {
 		$installation_path =
 		  catdir( _installdir(), qw(auto share module), $module );
 		$sharecode = 'share_d' . $sharemod_used;
-		_scan_dir($dir, $sharecode, $dir, $sharecode, $files); 
+		_scan_dir( $dir, $sharecode, $dir, $sharecode, $files );
 		push @install_types, $sharecode;
 		$sharemod_used++;
-	}
+	} ## end else [ if ( $type eq 'dist' )
 
+	# Set the path to install to.
 	install_path( $sharecode, $installation_path );
+	
+	# This helps for testing purposes...
+	if ($Module::Build::VERSION >= 0.31) {
+		Module::Build->add_property($sharecode . '_files', default => sub { return {} });
+	}
 	
 	# 99% of the time we don't want to index a shared dir
 	no_index($dir);
+	
+	# This construction requires 0.26.
+	_mb_required('0.26');
 	return;
 } ## end sub install_share
 
@@ -709,12 +757,12 @@ sub install_share {
 
 sub _af_hashref {
 	my $feature = shift;
-	unless ( exists $args{auto_features} ) {
-		$args{auto_features} = {};
+	unless ( exists $ARGS{auto_features} ) {
+		$ARGS{auto_features} = {};
 	}
-	unless ( exists $args{auto_features}{$feature} ) {
-		$args{auto_features}{$feature} = {};
-		$args{auto_features}{$feature}{requires} = {};
+	unless ( exists $ARGS{auto_features}{$feature} ) {
+		$ARGS{auto_features}{$feature} = {};
+		$ARGS{auto_features}{$feature}{requires} = {};
 	}
 	return;
 }
@@ -727,13 +775,13 @@ sub auto_features {
 	_af_hashref($type);
 
 	if ( 'description' eq $type ) {
-		$args{auto_features}{$feature}{description} = $param1;
+		$ARGS{auto_features}{$feature}{description} = $param1;
 	} elsif ( 'requires' eq $type ) {
-		$args{auto_features}{$feature}{requires}{$param1} = $param2;
+		$ARGS{auto_features}{$feature}{requires}{$param1} = $param2;
 	} else {
 		croak "Invalid type $type for auto_features";
 	}
-	_mb_required(0.26);
+	_mb_required('0.26');
 	return;
 } ## end sub auto_features
 
@@ -752,9 +800,9 @@ sub extra_compiler_flags {
 		}
 	} else {
 		_create_arrayref('extra_compiler_flags');
-		push @{ $args{'extra_compiler_flags'} }, $flag;
+		push @{ $ARGS{'extra_compiler_flags'} }, $flag;
 	}
-	_mb_required(0.19);
+	_mb_required('0.19');
 	return;
 } ## end sub extra_compiler_flags
 
@@ -773,21 +821,21 @@ sub extra_linker_flags {
 		}
 	} else {
 		_create_arrayref('extra_linker_flags');
-		push @{ $args{'extra_linker_flags'} }, $flag;
+		push @{ $ARGS{'extra_linker_flags'} }, $flag;
 	}
-	_mb_required(0.19);
+	_mb_required('0.19');
 	return;
 } ## end sub extra_linker_flags
 
 sub module_name {
 	my ($name) = shift;
-	$args{'module_name'} = $name;
-	unless ( exists $args{'dist_name'} ) {
+	$ARGS{'module_name'} = $name;
+	unless ( exists $ARGS{'dist_name'} ) {
 		my $dist_name = $name;
 		$dist_name =~ s/::/-/g;
 		dist_name($dist_name);
 	}
-	_mb_required(0.03);
+	_mb_required('0.03');
 	return;
 }
 
@@ -799,8 +847,8 @@ sub no_index {
 
 	_create_hashref('no_index');
 	_create_hashref_arrayref( 'no_index', $type );
-	push @{ $args{'no_index'}{$type} }, $name;
-	_mb_required(0.28);
+	push @{ $ARGS{'no_index'}{$type} }, $name;
+	_mb_required('0.28');
 	return;
 } ## end sub no_index
 
@@ -815,10 +863,58 @@ sub PL_files { ## no critic(Capitalization)
 	}
 
 	_create_hashref('PL_files');
-	$args{PL_files}{$pl_file} = $pm_file;
-	_mb_required(0.06);
+	$ARGS{PL_files}{$pl_file} = $pm_file;
+	_mb_required('0.06');
 	return;
 } ## end sub PL_files
+
+sub meta_merge {
+	my $key = shift;
+	my $value = shift;
+	if ( 'HASH' eq ref $key ) {
+		my ( $k, $v );
+		while ( ( $k, $v ) = each %{$key} ) {
+			meta_merge( $k, $v );
+		}
+		return;
+	}
+
+	# Allow omitting hashrefs, if there's one more parameter.
+	if (1 == scalar @_) {
+		meta_merge( $key, { $value => shift } );
+		return;
+	} elsif ( 0 != scalar @_) {
+		confess 'Too many parameters to meta_merge';
+	}
+
+	if ((defined $ARGS{meta_merge}{$key}) and ( ref $value ne ref $ARGS{meta_merge}{$key} )) {
+		confess 'Mismatch between value to merge into meta information and value already there';
+	}
+	
+	if ( 'HASH' eq ref $ARGS{meta_merge}{$key} ) {
+		$ARGS{meta_merge}{$key} = { (%{$ARGS{meta_merge}{$key}}), (%{$value}) };	
+	} elsif ( 'ARRAY' eq ref $ARGS{meta_merge}{$key} ) {
+		$ARGS{meta_merge}{$key} = \( @{$ARGS{meta_merge}{$key}}, @{$value})	
+	} else {
+		$ARGS{meta_merge}{$key} = $value;
+	}
+	
+	_mb_required('0.28');
+	return;
+}
+
+
+sub repository {
+	my $url = shift;
+	meta_merge('resources', 'repository' => $url );
+	return;
+}
+
+sub bugtracker {
+	my $url = shift;
+	meta_merge('resources', 'bugtracker' => $url );
+	return;
+}
 
 sub script_files {
 	my $file = shift;
@@ -829,8 +925,8 @@ sub script_files {
 	}
 
 	if ( -d $file ) {
-		if ( exists $args{'script_files'} ) {
-			if ( 'ARRAY' eq ref $args{'script_files'} ) {
+		if ( exists $ARGS{'script_files'} ) {
+			if ( 'ARRAY' eq ref $ARGS{'script_files'} ) {
 				croak
 				  "cannot add directory $file to a list of script_files";
 			} else {
@@ -838,13 +934,13 @@ sub script_files {
 "attempt to overwrite string script_files with $file failed";
 			}
 		} else {
-			$args{'script_files'} = $file;
+			$ARGS{'script_files'} = $file;
 		}
 	} else {
 		_create_arrayref('script_files');
-		push @{ $args{'script_files'} }, $file;
+		push @{ $ARGS{'script_files'} }, $file;
 	}
-	_mb_required(0.18);
+	_mb_required('0.18');
 	return;
 } ## end sub script_files
 
@@ -857,26 +953,26 @@ sub test_files {
 	}
 
 	if ( $file =~ /[*?]/ ) {
-		if ( exists $args{'test_files'} ) {
-			if ( 'ARRAY' eq ref $args{'test_files'} ) {
+		if ( exists $ARGS{'test_files'} ) {
+			if ( 'ARRAY' eq ref $ARGS{'test_files'} ) {
 				croak 'cannot add a glob to a list of test_files';
 			} else {
 				croak 'attempt to overwrite string test_files failed';
 			}
 		} else {
-			$args{'test_files'} = $file;
+			$ARGS{'test_files'} = $file;
 		}
 	} else {
 		_create_arrayref('test_files');
-		push @{ $args{'test_files'} }, $file;
+		push @{ $ARGS{'test_files'} }, $file;
 	}
-	_mb_required(0.23);
+	_mb_required('0.23');
 	return;
 } ## end sub test_files
 
 sub tap_harness_args {
 	my ($thargs) = shift;
-	$args{'tap_harness_args'} = $thargs;
+	$ARGS{'tap_harness_args'} = $thargs;
 	use_tap_harness(1);
 	return;
 }
@@ -894,32 +990,29 @@ sub create_build_script {
 
 # Required to get a builder for later use.
 sub get_builder {
-#	require Data::Dumper;
-#	my $d = Data::Dumper->new([\%args], [qw(*args)]);
-#	print $d->Indent(1)->Dump();
 
-	if ($mb_required < 0.07) { $mb_required = 0.07;}
-	build_requires('Module::Build', $mb_required);
+	if ( $mb_required < 0.07 ) { $mb_required = '0.07'; }
+	build_requires( 'Module::Build', $mb_required );
 
-	if ($mb_required > 0.2999) {
-		configure_requires('Module::Build', $mb_required);
+	if ( $mb_required > 0.2999 ) {
+		configure_requires( 'Module::Build', $mb_required );
 	}
 
 	unless ( defined $object ) {
 		if ( defined $class ) {
-			$object = $class->new(%args);
+			$object = $class->new(%ARGS);
 		} else {
-			$object = Module::Build->new(%args);
+			$object = Module::Build->new(%ARGS);
 		}
 		$object_created = 1;
 	}
-	
+
 	foreach my $type (@install_types) {
 		$object->add_build_element($type);
 	}
-	
+
 	return $object;
-}
+} ## end sub get_builder
 
 sub functions_self_bundler {
 	my $code = <<'END_OF_CODE';
@@ -938,5 +1031,14 @@ END_OF_CODE
 
 	return;
 } ## end sub functions_self_bundler
+
+sub _debug_print {
+	require Data::Dumper;
+	my $d = Data::Dumper->new([\%ARGS, \$mb_required], [qw(*ARGS *mb_required)]);
+	print $d->Indent(1)->Dump();
+	return;
+}
+
+1;
 
 

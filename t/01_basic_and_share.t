@@ -3,7 +3,6 @@ BEGIN {
 }
 use Test::More tests => 14;
 use File::Spec::Functions qw(catdir catfile);
-use Module::Build::Functions;
 use Module::Build;
 use Cwd;
 use Capture::Tiny qw(capture);
@@ -12,15 +11,16 @@ diag( "Using Module::Build $Module::Build::VERSION" );
 my $debug = 0;
 
 my $original_dir = cwd();
+my $blib_dir = catdir qw(.. .. blib lib);
 
 chdir(catdir(qw(t MBF-Test)));
-(undef, undef) = capture { bundler(); };
-ok(-e catfile(qw(inc Module Build Functions.pm)), 'bundler() works correctly');
 
-(undef, undef) = capture { system($^X, 'Build.PL'); } unless $debug;
-system($^X, 'Build.PL') if $debug;
+
+(undef, undef) = capture { system($^X, "-I$blib_dir", 'Build.PL'); } unless $debug;
+system($^X, "-I$blib_dir", 'Build.PL') if $debug;
 ok(-e '_build', 'Build.PL appeared to execute correctly');
-ok(-e catfile(qw(_build lib ModuleBuildFunctions SelfBundler.pm)), 'Build.PL appeared to create the self-bundler');
+ok(-e 'Build', 'Building script was created');
+ok(-e catfile(qw(inc Module Build Functions.pm)), 'Build.PL appeared to bundle itself into ./inc');
 
 my $build = Module::Build->current();
 

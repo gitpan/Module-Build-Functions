@@ -1,5 +1,6 @@
 Build.PL
 Changes
+inc/Module/Build/Functions.pm
 lib/inc/Module/Build/Functions.pm
 lib/inc/Module/Build/Functions/DSL.pm
 lib/Module/Build/Functions.pm

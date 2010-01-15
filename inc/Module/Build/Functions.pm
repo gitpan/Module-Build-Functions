@@ -1,3 +1,4 @@
+#line 1
 package Module::Build::Functions;
 
 #<<<
@@ -164,7 +165,7 @@ sub _copy {
 } ## end sub _copy
 
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.001_011';
 
 	*inc::Module::Build::Functions::VERSION = *VERSION;
 

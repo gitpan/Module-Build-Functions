@@ -18,20 +18,20 @@ name: Module-Build-Functions
 provides:
   Module::Build::Functions:
     file: lib/Module/Build/Functions.pm
-    version: 0.03
+    version: 0.04
   Module::Build::Functions::DSL:
     file: lib/Module/Build/Functions/DSL.pm
-    version: 0.03
+    version: 0.04
   inc::Module::Build::Functions:
     file: lib/inc/Module/Build/Functions.pm
-    version: 0.03
+    version: 0.04
   inc::Module::Build::Functions::DSL:
     file: lib/inc/Module/Build/Functions/DSL.pm
-    version: 0.03
+    version: 0.04
 requires:
   File::Slurp: 0
   Module::Build: 0.07
   perl: 5.00503
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.03
+version: 0.04
